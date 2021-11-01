@@ -3,10 +3,13 @@ package com.hannapapova.server;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -21,6 +24,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -31,7 +35,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout msgList;
     private Handler handler;
     private int greenColor;
-    private EditText edMessage;
+    private EditText edMessage, etUserName, etPassword, etUserInfo;
+    private UserDatabase database;
+    private Button bSelectAll, bEdit, bSelectOne;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +48,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         handler = new Handler();
         msgList = findViewById(R.id.msgList);
         edMessage = findViewById(R.id.edMessage);
+        etUserName = findViewById(R.id.et_username);
+        etPassword = findViewById(R.id.et_password);
+        etUserInfo = findViewById(R.id.et_userinfo);
+
+        bSelectAll = findViewById(R.id.btn_select_all);
+        bEdit = findViewById(R.id.btn_edit);
+        bSelectOne = findViewById(R.id.btn_select_one);
+
+        database = UserDatabase.getInstance(this);
+
+        //Select all users
+        bSelectAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                List<UserEntity> allUsers = database.userDao().getAllUsers();
+                for (UserEntity user : allUsers) {
+                    logUser(user);
+                }
+            }
+        });
+
+        //Edit user info; use etUserName to set userId & etUserInfo to set userInfo
+        bEdit.setOnClickListener(v -> {
+            int id = Integer.parseInt(etUserName.getText().toString());
+            String info = etUserInfo.getText().toString().trim();
+            database.userDao().editUser(id, info);
+        });
+
+        //Select user by name and password (fake authorization)
+        bSelectOne.setOnClickListener(v -> {
+            String name = etUserName.getText().toString();
+            String password = etPassword.getText().toString();
+            UserEntity user = database.userDao().getUser(name, password);
+            if(user == null){
+                Log.d("WORK WITH ROOM", "Wrong username or password!");
+            }else{
+                logUser(user);
+            }
+        });
     }
 
     public TextView textView(String message, int color) {
@@ -50,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         TextView tv = new TextView(this);
         tv.setTextColor(color);
-        tv.setText(message + " [" + getTime() +"]");
+        tv.setText(message + " [" + getTime() + "]");
         tv.setTextSize(20);
         tv.setPadding(0, 5, 0, 0);
         return tv;
@@ -78,6 +123,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String msg = edMessage.getText().toString().trim();
             showMessage("Server : " + msg, Color.BLUE);
             sendMessage(msg);
+        }
+        if (view.getId() == R.id.btn_add_user) {
+            // Add user to DB
+            Toast.makeText(this, "Add user", Toast.LENGTH_SHORT).show();
+            String userName = etUserName.getText().toString().trim();
+            String userPassword = etPassword.getText().toString().trim();
+            String userInfo = etUserInfo.getText().toString().trim();
+
+            UserEntity user = new UserEntity();
+            user.setUserName(userName);
+            user.setUserPassword(userPassword);
+            user.setUserInfo(userInfo);
+
+            database.userDao().insertUser(user);
+
+            Toast.makeText(this, "User " + userName + " inserted to DB", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -182,5 +243,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             serverThread.interrupt();
             serverThread = null;
         }
+    }
+
+    private void logUser(UserEntity user) {
+        Log.d("WORK WITH ROOM", "ID: " + user.getUserId() + ", name: " + user.getUserName() + ", password: " + user.getUserPassword() + ", userInfo: " + user.getUserInfo());
     }
 }
