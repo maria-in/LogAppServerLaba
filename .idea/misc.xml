@@ -3,12 +3,12 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Users/funny/Desktop/PAiTSZI/LogAppServerLaba/app/src/main/res/layout/activity_main.xml" value="0.22" />
+        <entry key="..\:/The seventh semester/PAiTSZI/Laba_2_new/LogAppServerLaba/app/src/main/res/layout/activity_main.xml" value="0.5" />
         <entry key="..\:/Users/funny/Desktop/PAiTSZI/ServerAndroid/app/src/main/res/layout/activity_main.xml" value="0.1796875" />
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

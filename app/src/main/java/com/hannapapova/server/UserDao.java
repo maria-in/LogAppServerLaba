@@ -13,8 +13,8 @@ public interface UserDao {
     @Insert(onConflict = REPLACE)
     void insertUser(UserEntity user);
 
-    @Query("UPDATE user_table SET user_info = :userInfo WHERE user_id = :userId")
-    void editUser(int userId, String userInfo);
+    @Query("UPDATE user_table SET user_info = :userInfo WHERE user_name = :userName")
+    void editUser(String userName, String userInfo);
 
     @Query("SELECT * FROM user_table")
     List<UserEntity> getAllUsers();

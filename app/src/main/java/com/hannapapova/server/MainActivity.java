@@ -20,8 +20,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -70,11 +73,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
         //Edit user info; use etUserName to set userId & etUserInfo to set userInfo
-        bEdit.setOnClickListener(v -> {
+        /*bEdit.setOnClickListener(v -> {
             int id = Integer.parseInt(etUserName.getText().toString());
             String info = etUserInfo.getText().toString().trim();
             database.userDao().editUser(id, info);
-        });
+        });*/
 
         //Select user by name and password (fake authorization)
         bSelectOne.setOnClickListener(v -> {
@@ -133,7 +136,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             UserEntity user = new UserEntity();
             user.setUserName(userName);
-            user.setUserPassword(userPassword);
+            /**
+             * Хеширование и сохранение пароля в бд.
+             */
+            try {
+                user.setUserPassword(hashPassword(userPassword));
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+
             user.setUserInfo(userInfo);
 
             database.userDao().insertUser(user);
@@ -141,6 +152,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Toast.makeText(this, "User " + userName + " inserted to DB", Toast.LENGTH_SHORT).show();
         }
     }
+
+
 
     private void sendMessage(final String message) {
         try {
@@ -221,7 +234,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         break;
                     }
                     showMessage("Client : " + read, greenColor);
-                } catch (IOException e) {
+
+                    String operationWord = read.substring(0, read.indexOf(" "));
+
+                    showMessage(operationWord, greenColor);
+
+                    if (operationWord.equals("auth")){
+                        String userName = read.substring(read.indexOf('{') + 1, read.indexOf('}'));
+                        String password = read.substring(read.lastIndexOf('{') + 1, read.lastIndexOf('}'));
+                        UserEntity user = database.userDao().getUser(userName, hashPassword(password));
+                        if(user != null) {
+                            sendMessage("Find user: " + user.getUserName() + " " + user.getUserInfo());
+                        }
+                        else{
+                            sendMessage("Wrong password");
+                        }
+                    }
+                    if (operationWord.equals("edit")){
+                        String userName = read.substring(read.indexOf('{') + 1, read.indexOf('}'));
+                        String editInfo = read.substring(read.lastIndexOf('{') + 1, read.lastIndexOf('}'));
+                        try {
+                            database.userDao().editUser(userName, editInfo);
+                            sendMessage("Info Saved");
+                        }catch (Exception exception){
+                            sendMessage(exception.getMessage());
+                        }
+
+                    }
+
+                } catch (IOException | NoSuchAlgorithmException e) {
                     e.printStackTrace();
                 }
 
@@ -245,7 +286,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private String hashPassword(String password) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        return new BigInteger(1, md.digest(password.getBytes())).toString(16);
+    }
+
     private void logUser(UserEntity user) {
+
         Log.d("WORK WITH ROOM", "ID: " + user.getUserId() + ", name: " + user.getUserName() + ", password: " + user.getUserPassword() + ", userInfo: " + user.getUserInfo());
     }
 }
