@@ -38,36 +38,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         etUserInfo = findViewById(R.id.et_userinfo);
 
         database = UserDatabase.getInstance(this);
-
-        /*//Select all users
-        bSelectAll.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                List<UserEntity> allUsers = database.userDao().getAllUsers();
-                for (UserEntity user : allUsers) {
-                    logUser(user);
-                }
-            }
-        });
-
-        //Edit user info; use etUserName to set userId & etUserInfo to set userInfo
-        bEdit.setOnClickListener(v -> {
-            int id = Integer.parseInt(etUserName.getText().toString());
-            String info = etUserInfo.getText().toString().trim();
-            database.userDao().editUser(id, info);
-        });
-
-        //Select user by name and password (fake authorization)
-        bSelectOne.setOnClickListener(v -> {
-            String name = etUserName.getText().toString();
-            String password = etPassword.getText().toString();
-            UserEntity user = database.userDao().getUser(name, password);
-            if (user == null) {
-                Log.d("WORK WITH ROOM", "Wrong username or password!");
-            } else {
-                logUser(user);
-            }
-        });*/
     }
 
     @Override
@@ -175,11 +145,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (operationWord.equals("auth")) {
                         String userName = read.substring(read.indexOf('{') + 1, read.indexOf('}'));
                         String password = read.substring(read.lastIndexOf('{') + 1, read.lastIndexOf('}'));
-                        UserEntity user = database.userDao().getUser(userName, hashPassword(password));
-                        if (user != null) {
-                            sendMessage("auth {" + user.getUserId() + "}{" + user.getUserInfo() + "}");
-                        } else {
-                            sendMessage("auth error");
+                        if (database.userDao().findNameUser(userName) != null) {
+                            UserEntity user = database.userDao().getUser(userName, hashPassword(password));
+                            if (user != null) {
+                                sendMessage("auth {" + user.getUserId() + "}{" + user.getUserInfo() + "}");
+                            } else {
+                                sendMessage("password error");
+                            }
+                        }
+                        else{
+                            sendMessage("login error");
                         }
                     }
                     if (operationWord.equals("edit")) {

@@ -21,4 +21,7 @@ public interface UserDao {
 
     @Query("SELECT user_id, user_name, user_password, user_info FROM user_table WHERE user_name = :userName AND user_password = :userPassword")
     UserEntity getUser(String userName, String userPassword);
+
+    @Query("SELECT user_name FROM user_table WHERE user_name = :userName")
+    String findNameUser(String userName);
 }
