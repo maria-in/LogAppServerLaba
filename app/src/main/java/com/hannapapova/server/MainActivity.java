@@ -27,6 +27,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final int SERVER_PORT = 3003;
     private EditText etUserName, etPassword, etUserInfo;
     private UserDatabase database;
+    String userName;
+    String password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,18 +144,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     String operationWord = read.substring(0, read.indexOf(" "));
 
+
+                    if (operationWord.equals("secondPassword")) {
+                        String secondPassword = read.substring(read.indexOf('{') + 1, read.indexOf('}'));
+                        if (secondPassword.equals("hello")) {
+                            UserEntity user = database.userDao().getUser(userName, hashPassword(password));
+                            sendMessage("auth {" + user.getUserId() + "}{" + user.getUserInfo() + "}");
+                        } else{
+                            sendMessage("SecondPasswordError");
+                        }
+                    }
+
                     if (operationWord.equals("auth")) {
-                        String userName = read.substring(read.indexOf('{') + 1, read.indexOf('}'));
-                        String password = read.substring(read.lastIndexOf('{') + 1, read.lastIndexOf('}'));
+                        userName = read.substring(read.indexOf('{') + 1, read.indexOf('}'));
+                        password = read.substring(read.lastIndexOf('{') + 1, read.lastIndexOf('}'));
                         if (database.userDao().findNameUser(userName) != null) {
                             UserEntity user = database.userDao().getUser(userName, hashPassword(password));
                             if (user != null) {
-                                sendMessage("auth {" + user.getUserId() + "}{" + user.getUserInfo() + "}");
+//                                sendMessage("auth {" + user.getUserId() + "}{" + user.getUserInfo() + "}");
+                                sendMessage("Enter second password");
                             } else {
                                 sendMessage("password error");
                             }
-                        }
-                        else{
+                        } else {
                             sendMessage("login error");
                         }
                     }
